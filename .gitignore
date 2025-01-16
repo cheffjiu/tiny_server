@@ -1,0 +1,33 @@
+# 编译输出文件
+/build/
+bin/
+obj/
+*.o
+*.a
+*.so
+*.out
+*.exe
+
+# 临时文件
+*.d
+*.idb
+*.pdb
+
+# 系统文件
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# IDE 配置文件
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# CMake 配置文件（如果你使用 CMake）
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+Makefile
