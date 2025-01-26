@@ -8,8 +8,7 @@ component http
 CGImysql ..>log
 http ..>log
 http ..>CGImysql
-threadpoll ..>httpgit config --global user.name
-git config --global user.email
+threadpoll ..>http
 threadpoll ..>log 
 server ..>http
 server ..>threadpoll
