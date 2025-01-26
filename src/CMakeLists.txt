@@ -13,7 +13,6 @@ add_subdirectory(router)
 
 add_subdirectory(server)
 
-# #find_package(MySQL REQUIRED)
 
 add_executable(main main.cpp)
 set_target_properties(main PROPERTIES

@@ -3,7 +3,7 @@
 
 Router::Router(UserManager &user_manager)
     : user_manager_(user_manager), logger_(Logger::GetInstance(LOGFILE)),
-      resource_path_("/media/psf/cpp/tiny_server/resource/web/") {
+      resource_path_("../../resource/web/") {
   InitRouter(user_manager);
 }
 
