@@ -70,13 +70,23 @@ FLUSH PRIVILEGES;
 ### 防火墙设置
 ```bash
 # Ubuntu系统
-sudo ufw allow 80/tcp    # HTTP端口
+sudo ufw allow 8080/tcp   # Web服务器端口
 sudo ufw allow 3306/tcp  # MySQL端口（如需远程访问）
 
 # CentOS系统
-sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=8080/tcp
 sudo firewall-cmd --permanent --add-port=3306/tcp
 sudo firewall-cmd --reload
+
+### 云服务器安全组配置
+如果您在云服务器（如阿里云、腾讯云等）上部署，还需要在云服务器控制台配置安全组：
+
+1. 登录云服务器控制台
+2. 找到安全组配置
+3. 添加入站规则：
+   - 协议类型：TCP
+   - 端口范围：8080
+   - 授权对象：0.0.0.0/0（允许所有IP访问）或者填写指定的IP地址
 ```
 
 ### 配置服务
