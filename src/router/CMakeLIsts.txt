@@ -1,0 +1,18 @@
+add_library(lib_router STATIC router.cpp)
+
+set_target_properties(lib_router PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+
+target_link_libraries(lib_router PUBLIC
+    lib_http
+    lib_log
+    lib_user_manager)
+
+target_include_directories(lib_router PUBLIC 
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/http
+    ${CMAKE_SOURCE_DIR}/src/log
+    ${CMAKE_SOURCE_DIR}/src/CGImysql)

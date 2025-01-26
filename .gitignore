@@ -31,3 +31,5 @@ CMakeFiles/
 CMakeScripts/
 cmake_install.cmake
 Makefile
+
+ssh_tools.jsonc

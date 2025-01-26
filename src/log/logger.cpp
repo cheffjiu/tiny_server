@@ -1,65 +1,74 @@
 #include "logger.h"
-Logger::Logger() : running_(true), log_level_(INFO) {
-  worker_ = std::thread(&Logger::LogThread, this); // 创建日志写入线程
+
+Logger::Logger(const std::string &log_file_name, bool async)
+    : running_(true), async_(async) {
+  log_file_.open(log_file_name, std::ios::app);
+  if (!log_file_.is_open()) {
+    throw std::runtime_error("Failed to open log file: " + log_file_name);
+  }
+  if (async_) {
+    log_thread_ = std::thread(&Logger::AsyncWriteLog, this);
+  }
 }
+
+Logger &Logger::GetInstance(const std::string &log_file_name, bool async) {
+  static Logger instance(log_file_name, async);
+  return instance;
+}
+
 Logger::~Logger() {
-  if (running_) {
-    Stop();
+  running_.store(false);
+  log_queue_cond_.notify_all();
+  if (async_ && log_thread_.joinable()) {
+    log_thread_.join();
   }
-  if (worker_.joinable()) {
-    worker_.join();
-  }
+  log_file_.close();
 }
 
-Logger &Logger::GetInstance() {
-  static Logger logger;
-  return logger;
+std::string Logger::FormatLog(LogLevel level, const std::string &message) {
+  std::ostringstream oss;
+  auto now = std::chrono::system_clock::now();
+  auto time = std::chrono::system_clock::to_time_t(now);
+  oss << "[" << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S")
+      << "] ";
+  switch (level) {
+  case INFO:
+    oss << "[INFO] ";
+    break;
+  case WARN:
+    oss << "[WARN] ";
+    break;
+  case ERROR:
+    oss << "[ERROR] ";
+    break;
+  case DEBUG:
+    oss << "[DEBUG] ";
+    break;
+  }
+  oss << message;
+  return oss.str();
 }
-
-void Logger::SetLogLevel(LogLevel level) { log_level_ = level; }
 
 void Logger::Log(LogLevel level, const std::string &message) {
-  if (level >= log_level_) {
-    std::ostringstream log_stream;
-
-    // 获取当前时间
-    std::time_t now = std::time(nullptr);
-    char time_buffer[20];
-    std::strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S",
-                  std::localtime(&now));
-
-    // 将日志信息写入字符串流
-    log_stream << "[" << time_buffer << "]["
-               << (level == INFO    ? "INFO"
-                   : level == WARN  ? "WARN"
-                   : level == ERROR ? "ERROR"
-                                    : "DEBUG")
-               << "]" << message;
-
-    // 将日志信息加入队列
-    log_queue_.push(log_stream.str());
+  std::string format_log = FormatLog(level, message);
+  if (async_) {
+    std::unique_lock<std::mutex> lock(log_queue_mutex_);
+    log_queue_.push(format_log);
+    log_queue_cond_.notify_one();
+  } else {
+    log_file_ << format_log << std::endl;
   }
 }
-void Logger::Stop() {
-  running_ = false;
-  log_queue_.push(""); // 向队列中添加一个空字符串，用于唤醒日志写入线程
-  if (worker_.joinable()) {
-    worker_.join();
-  }
-}
-void Logger::LogThread() {
-  std::ofstream log_file("server.log",std::ios::app);
-  if(!log_file.is_open()){
-    std::cerr<<"Failed to open log file"<<std::endl;
-    return;
-  }
-  while(running_){
-    std::string log_message=log_queue_.pop();
-    if(!running_&&log_message.empty()){
-      break;
+
+void Logger::AsyncWriteLog(){
+  while(running_.load()){
+    std::unique_lock<std::mutex> lock(log_queue_mutex_);
+    log_queue_cond_.wait(lock,[this](){
+      return !log_queue_.empty()||!running_.load();
+    });
+    while(!log_queue_.empty()){
+      log_file_<<log_queue_.front()<<std::endl;
+      log_queue_.pop();
     }
-    log_file<<log_message<<std::endl;
-    log_file.flush();
   }
-  log_file.close();
 }

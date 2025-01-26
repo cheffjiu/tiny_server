@@ -1,2 +1,0 @@
-[INFO] This is an INFO log.
-[ERROR] This is an ERROR log.

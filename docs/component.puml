@@ -1,0 +1,18 @@
+@startuml
+component log
+component threadpoll
+component server
+component timer
+component CGImysql
+component http
+CGImysql ..>log
+http ..>log
+http ..>CGImysql
+threadpoll ..>http
+threadpoll ..>log 
+server ..>http
+server ..>threadpoll
+server ..>timer
+server ..>log
+server ..>CGImysql
+@enduml

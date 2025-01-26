@@ -1,8 +1,5 @@
-#pragma once
 #ifndef LOGGER_H
 #define LOGGER_H
-
-#include "block_queue.h"
 #include "common.h"
 class Logger {
 public:
@@ -10,36 +7,32 @@ public:
   enum LogLevel { INFO, WARN, ERROR, DEBUG };
 
   // 单例模式获取实例
-  static Logger &GetInstance();
+  static Logger &GetInstance(const std::string &log_file_name,
+                             bool async = true);
+
+  Logger() = delete;
 
   // 禁用拷贝构造和赋值
   Logger(const Logger &) = delete;
-
   Logger &operator=(const Logger &) = delete;
-
-  // 设置日志级别
-  void SetLogLevel(LogLevel level);
 
   // 记录日志
   void Log(LogLevel level, const std::string &message);
 
-  // 停止日志线程
-  void Stop();
-
 private:
-  Logger();
+  Logger(const std::string &log_file_name, bool async = true);
   ~Logger();
-  // 日志写入线程
-  void LogThread();
 
-  std::atomic<bool> running_;         // 日志线程是否运行
-  BlockQueue<std::string> log_queue_; // 日志队列
-  std::thread worker_;                // 日志写入线程
-  LogLevel log_level_;                // 日志级别
+  void AsyncWriteLog();
+  std::string FormatLog(LogLevel level, const std::string &message);
 
-  // 测试接口
-// public:
-//   int getLogLevel() const { return log_level_; }
-//   bool isRunning() const { return running_; }
+  std::ofstream log_file_;                 // 日志文件
+  std::atomic<bool> running_;              // 日志对象是否在运行
+  std::queue<std::string> log_queue_;      // 日志队列
+  std::thread log_thread_;                 // 日志写入线程
+  std::mutex log_queue_mutex_;             // 日志队列互斥锁
+  std::condition_variable log_queue_cond_; // 日志队列条件变量
+  bool async_;                             // 是否异步写入日志
 };
+
 #endif
