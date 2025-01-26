@@ -30,7 +30,7 @@ TinyServer 是一个基于 C++11 实现的轻量级 Web 服务器，支持 HTTP 
 
 2. 克隆项目：
    ```bash
-   git clone https://github.com/yourusername/tiny_server.git
+   git clone https://github.com/cheffjiu/tiny_server.git
    cd tiny_server
    ```
 3. 配置数据库：
